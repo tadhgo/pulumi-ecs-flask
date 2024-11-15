@@ -4,7 +4,7 @@ import json
 
 config = pulumi.Config()
 
-## networking
+## vpc
 vpc = aws.ec2.Vpc("app-vpc",
     cidr_block="172.16.0.0/16",
     enable_dns_hostnames=True,
@@ -59,6 +59,7 @@ private_rt_association = aws.ec2.RouteTableAssociation("private-rt-association",
     route_table_id=private_route_table.id
 )
 
+## sg to allow access
 task_security_group = aws.ec2.SecurityGroup("task-sg",
     vpc_id=vpc.id,
     ingress=[aws.ec2.SecurityGroupIngressArgs(
@@ -117,7 +118,7 @@ task_definition = aws.ecs.TaskDefinition("flask-task",
     ),
     container_definitions=json.dumps([{
         "name": "flask-webserver",
-        "image": f"{aws.ecr.get_repository(name='pulumi-repo').repository_url}:latest",
+        "image": f"{aws.ecr.get_repository(name='pulumi-repo').repository_url}:latest", ## uploaded image beforehand - wasn't sure if awsx was allowed for ECR 
         "essential": True,
         "portMappings": [{
             "containerPort": 80,
